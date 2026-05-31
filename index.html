@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mentis Atelier SAS — Arquitectura que Sana</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        sand: { 50: '#faf8f4', 100: '#f5f0e8', 200: '#ede4d3', 300: '#dfd0b7', 400: '#ccb490' },
+        biophilic: { 400: '#7aab6b', 500: '#5e9550', 600: '#4a7d3e', 700: '#38612e', 800: '#26441e' },
+        slateCustom: { 700: '#334155', 800: '#1e293b', 900: '#0f172a' }
+      },
+      fontFamily: {
+        serif: ['"Playfair Display"', 'serif'],
+        sans: ['"DM Sans"', 'sans-serif']
+      }
+    }
+  }
+}
+</script>
+<style>
+  html { scroll-behavior: smooth; }
+  .btn-shadow { box-shadow: 0 4px 14px 0 rgba(94, 149, 80, 0.25); }
+  .btn-shadow:hover { box-shadow: 0 6px 20px 0 rgba(94, 149, 80, 0.35); }
+  
+  .fade-in-step {
+    animation: fadeIn 0.4s ease forwards;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  #toast {
+    visibility: hidden;
+    min-width: 280px;
+    background-color: #1e293b;
+    color: #fff;
+    text-align: center;
+    border-radius: 12px;
+    padding: 16px;
+    position: fixed;
+    z-index: 100;
+    left: 50%;
+    bottom: 30px;
+    transform: translateX(-50%);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    opacity: 0;
+    transition: opacity 0.3s, visibility 0.3s;
+  }
+  #toast.show {
+    visibility: visible;
+    opacity: 1;
+  }
+</style>
+</head>
+<body class="bg-sand-50 text-slateCustom-800 font-sans antialiased">
+
+  <header class="fixed top-0 w-full bg-sand-50/90 backdrop-blur-md z-40 border-b border-sand-200 transition-all duration-300">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-[72px] flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="font-serif text-xl sm:text-2xl font-bold tracking-tight text-slateCustom-900">MENTIS ATELIER</span>
+        <span class="text-[10px] font-bold bg-biophilic-500 text-white px-1.5 py-0.5 rounded tracking-wide">SAS</span>
+      </div>
+      
+      <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-slateCustom-700">
+        <a href="#inicio" class="hover:text-biophilic-600 transition-colors">Inicio</a>
+        <a href="#quienes-somos" class="hover:text-biophilic-600 transition-colors">Quiénes Somos</a>
+        <a href="#servicios" class="hover:text-biophilic-600 transition-colors">Servicios</a>
+        <a href="#portafolio" class="hover:text-biophilic-600 transition-colors">Prototipos</a>
+        <a href="#diagnostico" class="text-biophilic-600 font-semibold flex items-center gap-1.5 bg-biophilic-400/10 px-3 py-1.5 rounded-full hover:bg-biophilic-400/20 transition-all">
+          <i class="fa-solid fa-wand-magic-sparkles text-xs"></i> Diagnóstico Express
+        </a>
+      </nav>
+
+      <div class="flex items-center gap-4">
+        <a href="#contacto" class="hidden sm:inline-flex bg-biophilic-600 hover:bg-biophilic-700 text-white font-medium text-sm px-5 py-2.5 rounded-xl transition-all btn-shadow">
+          Cotizar en línea
+        </a>
+        <button id="btn-menu-movil" class="md:hidden text-slateCustom-800 focus:outline-none p-1">
+          <i class="fa-solid fa-bars text-xl"></i>
+        </button>
+      </div>
+    </div>
+
+    <div id="menu-movil" class="hidden md:hidden bg-sand-50 border-b border-sand-200 px-4 pt-2 pb-4 space-y-2">
+      <a href="#inicio" class="block py-2 text-base font-medium text-slateCustom-700 rounded-lg hover:bg-sand-100 px-3" onclick="toggleMenu()">Inicio</a>
+      <a href="#quienes-somos" class="block py-2 text-base font-medium text-slateCustom-700 rounded-lg hover:bg-sand-100 px-3" onclick="toggleMenu()">Quiénes Somos</a>
+      <a href="#servicios" class="block py-2 text-base font-medium text-slateCustom-700 rounded-lg hover:bg-sand-100 px-3" onclick="toggleMenu()">Servicios</a>
+      <a href="#portafolio" class="block py-2 text-base font-medium text-slateCustom-700 rounded-lg hover:bg-sand-100 px-3" onclick="toggleMenu()">Prototipos</a>
+      <a href="#diagnostico" class="block py-2 text-base font-semibold text-biophilic-700 bg-biophilic-400/10 rounded-lg px-3" onclick="toggleMenu()">Diagnóstico Express</a>
+      <a href="#contacto" class="block w-full text-center mt-4 bg-biophilic-600 text-white py-3 rounded-xl font-medium" onclick="toggleMenu()">Cotizar en línea</a>
+    </div>
+  </header>
+
+  <section id="inicio" class="relative pt-28 pb-16 lg:pt-40 lg:pb-28 overflow-hidden bg-gradient-to-b from-sand-100/50 to-sand-50">
+    <div class="absolute -top-40 -right-40 w-96 h-96 bg-biophilic-400/5 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute bottom-10 left-10 w-72 h-72 bg-sand-200/40 rounded-full blur-2xl pointer-events-none"></div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+        <div class="lg:col-span-7 space-y-6 text-center lg:text-left">
+          <div class="inline-flex items-center gap-1.5 bg-biophilic-400/10 text-biophilic-700 px-3 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider">
+            <i class="fa-solid fa-brain"></i> Ciencia aplicada a la Arquitectura
+          </div>
+          <h1 class="font-serif text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-slateCustom-900 font-bold leading-[1.12]">
+            Arquitectura que sana: Diseñamos espacios que transforman tu <span class="italic text-biophilic-600 font-normal">salud mental</span> y bienestar.
+          </h1>
+<p class="text-xl md:text-2xl font-semibold text-slateCustom-800 leading-snug">
+  Tu bienestar comienza en el espacio que habitas.
+</p>
+          <p class="text-slateCustom-700 text-base sm:text-lg max-w-2xl mx-auto lg:mx-0 font-light leading-relaxed">
+            Pasamos el 80% de nuestro día en espacios cerrados que no están pensados para nuestras emociones. En <span class="font-medium text-slateCustom-900">Mentis Atelier</span> fusionamos la ciencia y el diseño para mitigar la ansiedad, el estrés y devolverte el equilibrio.
+          </p>
+          <div class="pt-2 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+            <a href="#diagnostico" class="bg-biophilic-600 hover:bg-biophilic-700 text-white font-medium px-6 py-3.5 rounded-xl transition-all btn-shadow flex items-center justify-center gap-2 group">
+              Iniciar Diagnóstico Gratuito
+              <i class="fa-solid fa-arrow-right text-xs group-hover:translate-x-1 transition-transform"></i>
+            </a>
+            <a href="#portafolio" class="border border-sand-400 text-slateCustom-700 hover:bg-sand-100 hover:text-slateCustom-900 font-medium px-6 py-3.5 rounded-xl transition-all text-center">
+              Ver Prototipos
+            </a>
+          </div>
+        </div>
+        
+<div class="lg:col-span-5">
+  <div class="aspect-[4/5] sm:aspect-square lg:aspect-[4/5] bg-sand-200 rounded-3xl overflow-hidden shadow-xl border-4 border-white relative group cursor-pointer" 
+       onclick="openLightbox('https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=1200&q=80', 'Atmósferas Calmas – El Arte de Desconectar')">
+    
+    <img src="https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=1200&q=80" 
+         alt="Atmósferas Calmas - Interiorismo y Neuroarquitectura por Mentis Atelier" 
+         class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-103">
+    
+    <div class="absolute inset-0 bg-gradient-to-t from-slateCustom-900/40 via-transparent to-transparent"></div>
+    
+    <div class="absolute bottom-6 left-6 right-6 p-4 bg-white/90 backdrop-blur-md rounded-2xl shadow-md border border-white/40">
+      <span class="text-[10px] font-bold text-biophilic-600 uppercase tracking-wider block mb-0.5">
+        Neuroarquitectura — Interiorismo
+      </span>
+      <p class="font-serif text-slateCustom-900 font-bold text-sm sm:text-base">
+        Atmósferas Calmas – El Arte de Desconectar
+      </p>
+    </div>
+  </div>
+</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="py-16 sm:py-24 bg-white border-y border-sand-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="max-w-3xl mx-auto text-center mb-12">
+        <h2 class="font-serif text-2xl sm:text-3xl lg:text-4xl text-slateCustom-900 font-bold">El impacto de tu entorno en la mente</h2>
+        <p class="text-slateCustom-700 font-light mt-3 text-sm sm:text-base">
+          Conoce la realidad de Sara Hernández (30 años, contadora y trabajadora remota), y descubre cómo la neuroarquitectura cambia radicalmente su bienestar diario.
+        </p>
+        
+        <div class="mt-8 inline-flex p-1 bg-sand-100 rounded-xl border border-sand-200 shadow-inner">
+          <button id="tab-antes" class="px-4 sm:px-6 py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 bg-white text-slateCustom-900 shadow-sm" onclick="setCaseState('antes')">
+            <i class="fa-solid fa-cloud-rain mr-1.5 text-slateCustom-400"></i> El Espacio de Sara (Antes)
+          </button>
+          <button id="tab-despues" class="px-4 sm:px-6 py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 text-slateCustom-600 hover:text-slateCustom-900" onclick="setCaseState('despues')">
+            <i class="fa-solid fa-wand-magic-sparkles mr-1.5 text-biophilic-500"></i> Con Mentis Atelier (Después)
+          </button>
+        </div>
+      </div>
+
+      <div id="case-box" class="bg-sand-50 rounded-3xl border border-sand-200/80 p-6 sm:p-10 shadow-sm transition-all duration-300 min-h-[380px] grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+        <div class="lg:col-span-7 space-y-4" id="case-content">
+          <span id="case-badge" class="inline-block px-2.5 py-1 bg-red-50 text-red-600 border border-red-200 text-xs font-semibold rounded-md uppercase tracking-wider">El Dolor Diario</span>
+          <h3 id="case-title" class="font-serif text-xl sm:text-2xl text-slateCustom-900 font-bold">Agobio, falta de concentración y picos emocionales</h3>
+          <p id="case-desc" class="text-slateCustom-700 text-sm sm:text-base font-light leading-relaxed">
+            Sara pasa el 80% de su día en un apartamento con iluminación deficiente y colores oscuros y monótonos. Su zona de teletrabajo es incómoda y desorganizada, lo que detona un constante desánimo, fatiga mental profunda y dificultad para concentrarse, haciéndola sentir vacía a pesar de sus terapias psicológicas tradicionales.
+          </p>
+          <ul id="case-list" class="space-y-2 text-xs sm:text-sm text-slateCustom-600 font-light pt-2">
+            <li class="flex items-center gap-2"><i class="fa-solid fa-circle-xmark text-red-400 flex-shrink-0"></i> Iluminación deficiente y sombras marcadas que disparan el estrés.</li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-circle-xmark text-red-400 flex-shrink-0"></i> Colores apagados que profundizan el estado de tristeza y fatiga.</li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-circle-xmark text-red-400 flex-shrink-0"></i> Desorganización espacial que altera la sensación de control.</li>
+          </ul>
+        </div>
+        <div class="lg:col-span-5 h-full min-h-[250px] relative rounded-2xl overflow-hidden shadow-md group cursor-pointer" onclick="openLightbox(document.getElementById('case-img').src, document.getElementById('case-title').textContent)">
+          <img id="case-img" src="https://images.unsplash.com/photo-1558211583-d26f610c1eb1?auto=format&fit=crop&w=800&q=80" alt="Espacio desorganizado antes" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-103">
+          <div id="case-overlay" class="absolute inset-0 bg-black/30 mix-blend-multiply"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="quienes-somos" class="py-16 sm:py-24 bg-gradient-to-b from-sand-50 to-sand-100/40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="max-w-3xl mx-auto text-center mb-16">
+        <span class="text-xs font-bold uppercase tracking-widest text-biophilic-600 bg-biophilic-400/10 px-3 py-1 rounded-full">Nuestra Esencia</span>
+        <h2 class="font-serif text-2xl sm:text-3xl lg:text-4xl text-slateCustom-900 font-bold mt-3">Origen en la Ciencia e Innovación</h2>
+        <p class="text-slateCustom-700 font-light mt-2 text-sm sm:text-base">
+          Nacemos en el ecosistema de la <strong>Pontificia Universidad Javeriana (2026)</strong> para transformar la manera en que habitamos el mundo.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+        <div class="lg:col-span-7 space-y-6">
+          <div class="bg-white p-6 sm:p-8 rounded-2xl border border-sand-200 shadow-sm">
+            <div class="w-9 h-9 rounded-lg bg-biophilic-500 text-white flex items-center justify-center font-serif font-bold text-sm mb-4 shadow-sm">W</div>
+            <h4 class="font-serif text-lg sm:text-xl text-slateCustom-900 font-bold mb-2">Nuestro Propósito (Why)</h4>
+            <p class="text-slateCustom-700 text-sm sm:text-base font-light leading-relaxed">
+              Mitigar o prevenir las enfermedades de salud mental por medio de espacios diseñados rigurosamente para el mejoramiento y equilibrio emotional humano. Creemos fielmente en la prevención arquitectónica antes que en la mitigación reactiva.
+            </p>
+          </div>
+          <div class="bg-white p-6 sm:p-8 rounded-2xl border border-sand-200 shadow-sm">
+            <div class="w-9 h-9 rounded-lg bg-biophilic-500 text-white flex items-center justify-center font-serif font-bold text-sm mb-4 shadow-sm">H</div>
+            <h4 class="font-serif text-lg sm:text-xl text-slateCustom-900 font-bold mb-2">¿Cómo lo hacemos diferente? (How)</h4>
+            <p class="text-slateCustom-700 text-sm sm:text-base font-light leading-relaxed">
+              Mediante un proceso de diseño altamente eficiente, corto y personalizado. Nos basamos en matrices de diagnóstico que aplican datos científicos de colorimetría, texturas orgánicas, optimización espacial y biofilia para regular los niveles de cortisol y dopamina.
+            </p>
+          </div>
+        </div>
+
+        <div class="lg:col-span-5 bg-white p-6 sm:p-8 rounded-2xl border border-sand-200 shadow-sm flex flex-col justify-between">
+          <div class="space-y-4">
+            <h3 class="font-serif text-xl sm:text-2xl text-slateCustom-900 font-bold">Equipo Interdisciplinario y Respaldo</h3>
+            <p class="text-slateCustom-700 text-sm sm:text-base font-light leading-relaxed">
+              Mentis Atelier no opera solo desde la estética espacial. Contamos con un equipo técnico robusto y una red consultora activa en psicología y neurociencia para validar cada plano.
+            </p>
+          </div>
+          <div class="grid grid-cols-2 gap-4 pt-6 border-t border-sand-200 mt-6 text-xs sm:text-sm">
+            <div class="p-3 bg-sand-50 rounded-xl border border-sand-200/50 flex flex-col items-center text-center">
+              <img src="file:///C:/Users/Lenovo/Downloads/paulafoto.jpg" alt="Dirección" class="w-12 h-12 rounded-full object-cover mb-2 border border-sand-300">
+              <p class="text-biophilic-700 font-bold mb-0.5 text-xs"><i class="fa-solid fa-compass-drafting mr-1"></i> Dirección</p>
+              <p class="text-slateCustom-600 font-light text-[11px]">Directores de Proyecto y Residentes</p>
+            </div>
+            <div class="p-3 bg-sand-50 rounded-xl border border-sand-200/50 flex flex-col items-center text-center">
+              <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&h=150&q=80" alt="Visualización" class="w-12 h-12 rounded-full object-cover mb-2 border border-sand-300">
+              <p class="text-biophilic-700 font-bold mb-0.5 text-xs"><i class="fa-solid fa-cubes mr-1"></i> Visualización</p>
+              <p class="text-slateCustom-600 font-light text-[11px]">Arquitectos Renderistas y Diseñadores</p>
+            </div>
+            <div class="p-3 bg-sand-50 rounded-xl border border-sand-200/50 flex flex-col items-center text-center">
+              <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=150&h=150&q=80" alt="Salud Mental" class="w-12 h-12 rounded-full object-cover mb-2 border border-sand-300">
+              <p class="text-biophilic-700 font-bold mb-0.5 text-xs"><i class="fa-solid fa-brain mr-1"></i> Salud Mental</p>
+              <p class="text-slateCustom-600 font-light text-[11px]">Asesoría activa en Psicología</p>
+            </div>
+            <div class="p-3 bg-sand-50 rounded-xl border border-sand-200/50 flex flex-col items-center text-center">
+              <img src="https://images.unsplash.com/photo-1624561172888-ac93c696e10c?auto=format&fit=crop&w=150&h=150&q=80" alt="Ejecución" class="w-12 h-12 rounded-full object-cover mb-2 border border-sand-300">
+              <p class="text-biophilic-700 font-bold mb-0.5 text-xs"><i class="fa-solid fa-helmet-safety mr-1"></i> Ejecución</p>
+              <p class="text-slateCustom-600 font-light text-[11px]">Maestros de Obra y Proveedores</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="servicios" class="py-16 sm:py-24 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="max-w-3xl mx-auto text-center mb-16">
+        <span class="text-xs font-bold uppercase tracking-widest text-biophilic-600 bg-biophilic-400/10 px-3 py-1 rounded-full">Portafolio Especializado</span>
+        <h2 class="font-serif text-2xl sm:text-3xl lg:text-4xl text-slateCustom-900 font-bold mt-3">Tarifas Competitivas y Transparentes</h2>
+        <p class="text-slateCustom-700 font-light mt-2 text-sm sm:text-base">
+          Ofrecemos un modelo escalable y de rápida ejecución, con costos más accesibles que las firmas convencionales.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-start mb-16">
+        
+        <div class="bg-sand-50 p-6 sm:p-8 rounded-2xl border border-sand-200/70 space-y-6">
+          <div class="w-11 h-11 bg-white rounded-xl shadow-sm border border-sand-200 flex items-center justify-center text-biophilic-600">
+            <i class="fa-solid fa-clipboard-list text-base"></i>
+          </div>
+          <div class="space-y-2">
+            <h3 class="font-serif text-lg sm:text-xl text-slateCustom-900 font-bold">Diagnóstico Neuroarquitectónico</h3>
+            <p class="text-slateCustom-700 text-sm font-light leading-relaxed">
+              Evaluación analítica profunda de la iluminación, colorimetría y distribución actual de tu vivienda u oficina frente a síntomas de estrés, ansiedad o teletrabajo abrumador.
+            </p>
+          </div>
+          <div class="border-t border-sand-200/60 pt-4">
+            <span class="text-[10px] uppercase font-bold text-slateCustom-400 block tracking-wider">Inversión</span>
+            <span class="text-base sm:text-lg font-bold text-biophilic-700">Incluido en el Diseño</span>
+          </div>
+        </div>
+
+        <div class="bg-white p-6 sm:p-8 rounded-2xl border-2 border-biophilic-500 space-y-6 relative shadow-md">
+          <div class="absolute top-4 right-4">
+            <span class="bg-biophilic-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider shadow-sm">Más Popular</span>
+          </div>
+          <div class="w-11 h-11 bg-biophilic-500 rounded-xl flex items-center justify-center text-white shadow-sm">
+            <i class="fa-solid fa-pencil-ruler text-base"></i>
+          </div>
+          <div class="space-y-2">
+            <h3 class="font-serif text-lg sm:text-xl text-slateCustom-900 font-bold">Diseño Personalizado</h3>
+            <p class="text-slateCustom-700 text-sm font-light leading-relaxed">
+              Planos arquitectónicos detallados y renders fotorrealistas en 3D ajustados minuciosamente a tus necesidades sensoriales y emocionales específicas. Alta escalabilidad.
+            </p>
+          </div>
+          <div class="border-t border-sand-200/60 pt-4">
+            <span class="text-[10px] uppercase font-bold text-slateCustom-400 block tracking-wider">Inversión Fija</span>
+            <span class="font-serif text-xl sm:text-2xl text-slateCustom-900 font-bold">$35.000 <span class="text-xs text-slateCustom-500 font-sans font-normal">COP / m²</span></span>
+          </div>
+        </div>
+
+        <div class="bg-sand-50 p-6 sm:p-8 rounded-2xl border border-sand-200/70 space-y-6">
+          <div class="w-11 h-11 bg-white rounded-xl shadow-sm border border-sand-200 flex items-center justify-center text-biophilic-600">
+            <i class="fa-solid fa-building text-base"></i>
+          </div>
+          <div class="space-y-2">
+            <h3 class="font-serif text-lg sm:text-xl text-slateCustom-900 font-bold">Intervención Corporativa</h3>
+            <p class="text-slateCustom-700 text-sm font-light leading-relaxed">
+              Adaptación integral de oficinas, clínicas, consultorios o zonas de retiro espiritual para mejorar el bienestar colectivo y mitigar el burnout de los equipos de trabajo.
+            </p>
+          </div>
+          <div class="border-t border-sand-200/60 pt-4">
+            <span class="text-[10px] uppercase font-bold text-slateCustom-400 block tracking-wider">Inversión</span>
+            <span class="text-base sm:text-lg font-bold text-slateCustom-700">Bajo Cotización</span>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="bg-sand-100/60 rounded-2xl border border-sand-200 p-4 sm:p-8 max-w-4xl mx-auto shadow-inner">
+        <h4 class="font-serif text-lg text-slateCustom-900 font-bold text-center mb-6">Ventaja Comparativa en el Mercado Colombiano</h4>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-xs sm:text-sm">
+            <thead>
+              <tr class="border-b border-sand-300 text-slateCustom-500 font-medium">
+                <th class="pb-3">Criterio</th>
+                <th class="pb-3 text-biophilic-700 font-bold">Mentis Atelier</th>
+                <th class="pb-3 font-light text-slateCustom-400">Arquitectura A</th>
+                <th class="pb-3 font-light text-slateCustom-400">Arquitectura B</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-sand-200 text-slateCustom-700 font-light">
+              <tr>
+                <td class="py-3.5 font-medium text-slateCustom-900">Costo / Precio</td>
+                <td class="py-3.5 text-biophilic-700 font-bold">$35.000 COP / m²</td>
+                <td class="py-3.5">$35.000 COP</td>
+                <td class="py-3.5">$28.000 COP</td>
+              </tr>
+              <tr>
+                <td class="py-3.5 font-medium text-slateCustom-900">Proceso Producción</td>
+                <td class="py-3.5 text-biophilic-700 font-bold"><i class="fa-solid fa-bolt mr-1"></i> Corto y eficiente</td>
+                <td class="py-3.5 text-slateCustom-500">Mediano plazo</td>
+                <td class="py-3.5 text-slateCustom-500">Mediano plazo</td>
+              </tr>
+              <tr>
+                <td class="py-3.5 font-medium text-slateCustom-900">Escalabilidad</td>
+                <td class="py-3.5 text-biophilic-700 font-bold">Alta</td>
+                <td class="py-3.5 text-slateCustom-500">Media</td>
+                <td class="py-3.5 text-slateCustom-500">Media</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="portafolio" class="py-16 sm:py-24 bg-sand-50 border-t border-sand-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
+        <div>
+          <span class="text-xs font-bold uppercase tracking-widest text-biophilic-600 bg-biophilic-400/10 px-3 py-1 rounded-full">Casos de Validación</span>
+          <h2 class="font-serif text-2xl sm:text-3xl lg:text-4xl text-slateCustom-900 font-bold mt-3">Nuestros Prototipos de Diseño</h2>
+        </div>
+        <div class="flex flex-wrap gap-2 text-xs font-medium">
+          <button id="f-all" class="px-4 py-2 rounded-lg bg-biophilic-600 text-white shadow-sm transition-all" onclick="filterPortfolio('all')">Todos</button>
+          <button id="f-residencial" class="px-4 py-2 rounded-lg bg-white border border-sand-300 text-slateCustom-600 hover:text-slateCustom-900 shadow-sm transition-all" onclick="filterPortfolio('residencial')">Residencial</button>
+          <button id="f-corporativo" class="px-4 py-2 rounded-lg bg-white border border-sand-300 text-slateCustom-600 hover:text-slateCustom-900 shadow-sm transition-all" onclick="filterPortfolio('corporativo')">Corporativo</button>
+          <button id="f-salud" class="px-4 py-2 rounded-lg bg-white border border-sand-300 text-slateCustom-600 hover:text-slateCustom-900 shadow-sm transition-all" onclick="filterPortfolio('salud')">Salud / Bienestar</button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        
+        <div class="p-card bg-white rounded-2xl overflow-hidden border border-sand-200 shadow-sm transition-all duration-300 group cursor-pointer" data-cat="salud" onclick="openLightbox('jardin.jpg', 'Jardín de Sanación — Naturaleza Interior y Calma Sutil')">
+          <div class="aspect-video bg-sand-200 relative overflow-hidden">
+            <img src="jardin.jpg" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-103">
+            <span class="absolute top-4 left-4 bg-white/90 backdrop-blur-sm text-slateCustom-800 text-[10px] font-bold px-2.5 py-1 rounded shadow-sm uppercase tracking-wider">Salud & Bienestar</span>
+          </div>
+          <div class="p-5 space-y-2">
+            <h3 class="font-serif text-lg font-bold text-slateCustom-900">Jardín de Sanación</h3>
+            <p class="text-slateCustom-700 text-xs font-light leading-relaxed">
+              Abundante vegetación interior (biofilia), techos acristalados para el paso de luz natural y texturas orgánicas diseñadas para mitigar la ansiedad colectiva.
+            </p>
+          </div>
+        </div>
+
+        <div class="p-card bg-white rounded-2xl overflow-hidden border border-sand-200 shadow-sm transition-all duration-300 group cursor-pointer" data-cat="salud" onclick="openLightbox('salud.jpg', 'Clinica - Salud Mental')">
+          <div class="aspect-video bg-sand-200 relative overflow-hidden">
+            <img src="salud.jpg" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-103">
+            <span class="absolute top-4 left-4 bg-white/90 backdrop-blur-sm text-slateCustom-800 text-[10px] font-bold px-2.5 py-1 rounded shadow-sm uppercase tracking-wider">Salud & Bienestar</span>
+          </div>
+          <div class="p-5 space-y-2">
+            <h3 class="font-serif text-lg font-bold text-slateCustom-900">Clinica Salud Mental</h3>
+            <p class="text-slateCustom-700 text-xs font-light leading-relaxed">
+              Diseñado para promover la recuperación emocional, reducir los niveles de estrés y mejorar la calidad de vida de sus usuarios.
+            </p>
+          </div>
+        </div>
+
+        <div class="p-card bg-white rounded-2xl overflow-hidden border border-sand-200 shadow-sm transition-all duration-300 group cursor-pointer" data-cat="residencial" onclick="openLightbox('https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=1200&q=80', 'Apartamento de Sara — Equilibrio Remoto')">
+          <div class="aspect-video bg-sand-200 relative overflow-hidden">
+            <img src="https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=800&q=80" alt="Apartamento de Sara" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-103">
+            <span class="absolute top-4 left-4 bg-white/90 backdrop-blur-sm text-slateCustom-800 text-[10px] font-bold px-2.5 py-1 rounded shadow-sm uppercase tracking-wider">Residencial</span>
+          </div>
+          <div class="p-5 space-y-2">
+            <h3 class="font-serif text-lg font-bold text-slateCustom-900">Apartamento de Sara</h3>
+            <p class="text-slateCustom-700 text-xs font-light leading-relaxed">
+              Remodelación integral enfocada en teletrabajo óptimo, balance de iluminación circadiana y rincones de alivio emocional para mitigar el agobio diario.
+            </p>
+          </div>
+        </div>
+
+        <div class="p-card bg-white rounded-2xl overflow-hidden border border-sand-200 shadow-sm transition-all duration-300 group cursor-pointer" data-cat="residencial" onclick="openLightbox('Residencial1.jpg', 'Santuario de la Alcoba — Dormitorio Regenerador')">
+          <div class="aspect-video bg-sand-200 relative overflow-hidden">
+            <img src="Residencial1.jpg" alt="Santuario de la Alcoba" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-103">
+            <span class="absolute top-4 left-4 bg-white/90 backdrop-blur-sm text-slateCustom-800 text-[10px] font-bold px-2.5 py-1 rounded shadow-sm uppercase tracking-wider">Residencial</span>
+          </div>
+          <div class="p-5 space-y-2">
+            <h3 class="font-serif text-lg font-bold text-slateCustom-900">Santuario de la Alcoba</h3>
+            <p class="text-slateCustom-700 text-xs font-light leading-relaxed">
+              Diseño de dormitorio con aislamiento acústico natural, paleta cromática de baja estimulación y texturas de madera clara que mejoran la calidad del sueño.
+            </p>
+          </div>
+        </div>
+
+<div class="p-card bg-white rounded-2xl overflow-hidden border border-sand-200 shadow-sm transition-all duration-300 group cursor-pointer" data-cat="residencial" onclick="openLightbox('Residencial3.jpg', 'Cero estrés — Dormitorio Terapéutico')">
+          <div class="aspect-video bg-sand-200 relative overflow-hidden">
+            <img src="Residencial3.jpg" alt="Dormitorio terapéutico" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-103">
+            <span class="absolute top-4 left-4 bg-white/90 backdrop-blur-sm text-slateCustom-800 text-[10px] font-bold px-2.5 py-1 rounded shadow-sm uppercase tracking-wider">Residencial</span>
+          </div>
+          <div class="p-5 space-y-2">
+            <h3 class="font-serif text-lg font-bold text-slateCustom-900">Dormitorio Terapéutico</h3>
+            <p class="text-slateCustom-700 text-xs font-light leading-relaxed">
+              Espacio diseñado bajo principios de neuroarquitectura para promover la calma, la regulación emocional y el bienestar psicológico.
+            </p>
+          </div>
+        </div>
+
+        <div class="p-card bg-white rounded-2xl overflow-hidden border border-sand-200 shadow-sm transition-all duration-300 group cursor-pointer" data-cat="corporativo" onclick="openLightbox('https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=80', 'Oficina Sinergia Consciente — Mitigación del Burnout')">
+          <div class="aspect-video bg-sand-200 relative overflow-hidden">
+            <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=800&q=80" alt="Oficina Sinergia" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-103">
+            <span class="absolute top-4 left-4 bg-white/90 backdrop-blur-sm text-slateCustom-800 text-[10px] font-bold px-2.5 py-1 rounded shadow-sm uppercase tracking-wider">Corporativo</span>
+          </div>
+          <div class="p-5 space-y-2">
+            <h3 class="font-serif text-lg font-bold text-slateCustom-900">Oficina Sinergia Consciente</h3>
+            <p class="text-slateCustom-700 text-xs font-light leading-relaxed">
+              Módulos cooperativos abiertos con zonificación acústica biofílica y descansos visuales diseñados para regular picos de fatiga cognitiva en equipos corporativos.
+            </p>
+          </div>
+        </div>
+
+        <div class="p-card bg-white rounded-2xl overflow-hidden border border-sand-200 shadow-sm transition-all duration-300 group cursor-pointer" data-cat="corporativo" onclick="openLightbox('Oficina.jpg', 'Oficina corporativa — Trabajo y Tranquilidad')">
+          <div class="aspect-video bg-sand-200 relative overflow-hidden">
+            <img src="Oficina.jpg" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-103">
+            <span class="absolute top-4 left-4 bg-white/90 backdrop-blur-sm text-slateCustom-800 text-[10px] font-bold px-2.5 py-1 rounded shadow-sm uppercase tracking-wider">Corporativo</span>
+          </div>
+          <div class="p-5 space-y-2">
+            <h3 class="font-serif text-lg font-bold text-slateCustom-900">Oficina Corporativa</h3>
+            <p class="text-slateCustom-700 text-xs font-light leading-relaxed">
+              La oficina promueve una experiencia centrada en las personas, donde el confort físico y emocional se convierte en un factor estratégico para mejorar el desempeño, la innovación y la satisfacción de los colaboradores.
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <section id="diagnostico" class="py-16 sm:py-24 bg-gradient-to-b from-sand-50 to-sand-200/50">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6">
+      <div class="bg-white rounded-3xl p-6 sm:p-10 md:p-12 shadow-xl border border-sand-200 relative">
+        <div class="text-center mb-8">
+          <span class="text-xs font-bold text-biophilic-700 bg-biophilic-400/10 px-3 py-1 rounded-full uppercase tracking-wider">Herramienta Gratuita</span>
+          <h2 class="font-serif text-2xl sm:text-3xl text-slateCustom-900 font-bold mt-2">Pre-Diagnóstico Express</h2>
+          <p class="text-slateCustom-600 font-light text-xs sm:text-sm mt-1">Calcula un aproximado espacial y presupuestal en menos de 1 minuto.</p>
+        </div>
+
+        <div class="w-full bg-sand-100 h-1 rounded-full mb-8 overflow-hidden">
+          <div id="progreso-diag" class="bg-biophilic-500 h-full w-1/3 transition-all duration-300"></div>
+        </div>
+
+        <div id="diagnostic-flow">
+          <div id="diag-step-1" class="fade-in-step space-y-4">
+            <h3 class="text-sm font-bold text-slateCustom-400 uppercase tracking-wider text-center mb-2">Paso 1: ¿Qué tipo de entorno deseas transformar?</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <button class="p-4 border border-sand-300 rounded-xl bg-sand-50/50 text-left hover:border-biophilic-500 hover:bg-white text-sm text-slateCustom-800 transition-all font-medium flex items-center gap-3" onclick="nextDiagStep(1, 'Habitación de Teletrabajo / Estudio')">
+                <i class="fa-solid fa-laptop-house text-biophilic-500 text-base"></i> Habitación de Teletrabajo
+              </button>
+              <button class="p-4 border border-sand-300 rounded-xl bg-sand-50/50 text-left hover:border-biophilic-500 hover:bg-white text-sm text-slateCustom-800 transition-all font-medium flex items-center gap-3" onclick="nextDiagStep(1, 'Apartamento Completo / Residencial')">
+                <i class="fa-solid fa-house text-biophilic-500 text-base"></i> Apartamento Completo
+              </button>
+              <button class="p-4 border border-sand-300 rounded-xl bg-sand-50/50 text-left hover:border-biophilic-500 hover:bg-white text-sm text-slateCustom-800 transition-all font-medium flex items-center gap-3" onclick="nextDiagStep(1, 'Oficina Corporativa / Institucional')">
+                <i class="fa-solid fa-briefcase text-biophilic-500 text-base"></i> Oficina Corporativa
+              </button>
+              <button class="p-4 border border-sand-300 rounded-xl bg-sand-50/50 text-left hover:border-biophilic-500 hover:bg-white text-sm text-slateCustom-800 transition-all font-medium flex items-center gap-3" onclick="nextDiagStep(1, 'Clínica / Consultorio de Salud')">
+                <i class="fa-solid fa-user-md text-biophilic-500 text-base"></i> Clínica o Consultorio
+              </button>
+            </div>
+          </div>
+
+          <div id="diag-step-2" class="hidden fade-in-step space-y-4">
+            <h3 class="text-sm font-bold text-slateCustom-400 uppercase tracking-wider text-center mb-2">Paso 2: ¿Cuál es la principal sensación que te transmite hoy?</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <button class="p-4 border border-sand-300 rounded-xl bg-sand-50/50 text-left hover:border-biophilic-500 hover:bg-white text-sm text-slateCustom-800 transition-all font-medium flex items-center gap-3" onclick="nextDiagStep(2, 'Agobio / Altos Picos de Estrés y Ansiedad')">
+                <i class="fa-solid fa-bolt text-red-400"></i> Agobio / Estrés / Ansiedad
+              </button>
+              <button class="p-4 border border-sand-300 rounded-xl bg-sand-50/50 text-left hover:border-biophilic-500 hover:bg-white text-sm text-slateCustom-800 transition-all font-medium flex items-center gap-3" onclick="nextDiagStep(2, 'Tristeza / Desaliento / Espacio Frío')">
+                <i class="fa-solid fa-cloud text-blue-400"></i> Tristeza / Desaliento
+              </button>
+              <button class="p-4 border border-sand-300 rounded-xl bg-sand-50/50 text-left hover:border-biophilic-500 hover:bg-white text-sm text-slateCustom-800 transition-all font-medium flex items-center gap-3" onclick="nextDiagStep(2, 'Falta de Concentración y Fatiga Mental')">
+                <i class="fa-solid fa-brain-circuit text-amber-500"></i> Falta de concentración
+              </button>
+              <button class="p-4 border border-sand-300 rounded-xl bg-sand-50/50 text-left hover:border-biophilic-500 hover:bg-white text-sm text-slateCustom-800 transition-all font-medium flex items-center gap-3" onclick="nextDiagStep(2, 'Espacio Oscuro / Encierro sin Conexión Natural')">
+                <i class="fa-solid fa-moon text-indigo-400"></i> Espacio oscuro o encerrado
+              </button>
+            </div>
+            <button class="text-xs text-slateCustom-400 hover:text-biophilic-600 block mx-auto pt-2" onclick="backDiagStep(1)"><i class="fa-solid fa-arrow-left mr-1"></i> Volver atrás</button>
+          </div>
+
+          <div id="diag-step-3" class="hidden fade-in-step space-y-4">
+            <h3 class="text-sm font-bold text-slateCustom-400 uppercase tracking-wider text-center mb-2">Paso 3: ¿Cuáles son las dimensiones aproximadas del lugar?</h3>
+            <div class="max-w-xs mx-auto space-y-4">
+              <div class="relative rounded-xl shadow-sm">
+                <input type="number" id="diag-m2" min="1" placeholder="Ej: 45" class="w-full text-center text-xl font-medium py-3 border border-sand-300 rounded-xl focus:border-biophilic-500 outline-none">
+                <span class="absolute inset-y-0 right-4 flex items-center pointer-events-none text-slateCustom-400 text-sm font-medium">m²</span>
+              </div>
+              <button class="w-full bg-biophilic-600 hover:bg-biophilic-700 text-white py-3.5 rounded-xl font-medium transition-all shadow-md btn-shadow" onclick="processDiagResult()">
+                Calcular Diagnóstico y Presupuesto
+              </button>
+            </div>
+            <button class="text-xs text-slateCustom-400 hover:text-biophilic-600 block mx-auto pt-2" onclick="backDiagStep(2)"><i class="fa-solid fa-arrow-left mr-1"></i> Volver atrás</button>
+          </div>
+
+          <div id="diag-step-result" class="hidden fade-in-step space-y-6">
+            <div class="p-5 sm:p-6 bg-biophilic-400/5 border border-biophilic-400/20 rounded-2xl space-y-4">
+              <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-biophilic-600 mx-auto shadow-sm border border-sand-200">
+                <i class="fa-solid fa-circle-check text-lg"></i>
+              </div>
+              <h4 class="font-serif text-xl text-slateCustom-900 font-bold text-center">Análisis Preliminar Generado</h4>
+              
+              <div class="text-xs sm:text-sm text-slateCustom-700 bg-white p-4 rounded-xl border border-sand-200 space-y-2 font-light">
+                <p>• <strong class="font-medium text-slateCustom-900">Entorno a intervenir:</strong> <span id="r-entorno" class="font-normal text-slateCustom-800"></span></p>
+                <p>• <strong class="font-medium text-slateCustom-900">Foco Psicosensorial:</strong> El espacio actual detona sensaciones de <span id="r-emocion" class="text-slateCustom-800 font-normal lowercase"></span>. Se requiere una optimización cromática inmediata y una reorganización biofílica para devolver el control emocional de las rutinas cotidianas.</p>
+              </div>
+
+              <div class="border-t border-sand-200/80 pt-4 text-center">
+                <span class="text-[10px] uppercase font-bold text-slateCustom-400 block tracking-wider">Presupuesto Estimado Base de Diseño</span>
+                <p class="font-serif text-2xl sm:text-3xl text-slateCustom-900 font-bold mt-0.5" id="r-precio">$0 COP</p>
+                <p class="text-[10px] text-slateCustom-400 mt-0.5">Calculado bajo tarifa fija y transparente de $35.000 COP por m²</p>
+              </div>
+            </div>
+
+            <div class="pt-2">
+              <a id="btn-wa-diag" href="#" target="_blank" class="w-full bg-[#25D366] hover:bg-[#20ba59] text-white py-3.5 rounded-xl font-medium transition-all shadow-md flex items-center justify-center gap-2">
+                <i class="fa-brands fa-whatsapp text-lg"></i> Agendar Cita con un Arquitecto Especialista
+              </a>
+              <button class="text-xs text-slateCustom-400 hover:text-slateCustom-600 block mx-auto mt-4 underline" onclick="resetDiag()">Realizar otro diagnóstico</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <section id="contacto" class="py-16 sm:py-24 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+      
+      <div class="lg:col-span-5 space-y-6">
+        <span class="text-xs font-bold uppercase tracking-widest text-biophilic-600 bg-biophilic-400/10 px-3 py-1 rounded-full">Contacto Directo</span>
+        <h2 class="font-serif text-2xl sm:text-3xl lg:text-4xl text-slateCustom-900 font-bold mt-2">Inicia el cambio hoy</h2>
+        <p class="text-slateCustom-700 text-sm sm:text-base font-light leading-relaxed">
+          Estamos ubicados en <strong class="font-medium text-slateCustom-900">Bogotá, Colombia</strong>. Atendemos proyectos residenciales e institucionales a nivel nacional, transformando metros cuadrados en salud mental y calma.
+        </p>
+        <div class="space-y-4 text-xs sm:text-sm text-slateCustom-700 font-light pt-2">
+          <div class="flex items-center gap-3">
+            <i class="fa-solid fa-envelope text-biophilic-600 w-4 text-center"></i>
+            <span>arqpv@mentisatelier.co</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <i class="fa-solid fa-location-dot text-biophilic-600 w-4 text-center"></i>
+            <span>Bogotá, Colombia (Enfoque Inicial)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="lg:col-span-7 bg-sand-50 p-6 sm:p-8 rounded-2xl border border-sand-200 shadow-sm">
+        <form id="form-contacto" onsubmit="enviarFormContacto(event)" class="space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="space-y-1">
+              <label class="block text-[10px] font-bold text-slateCustom-500 uppercase tracking-wider">Nombre Completo *</label>
+              <input type="text" id="c-nombre" required class="w-full p-3 border border-sand-300 bg-white rounded-xl text-sm outline-none focus:border-biophilic-500 transition-colors">
+            </div>
+            <div class="space-y-1">
+              <label class="block text-[10px] font-bold text-slateCustom-500 uppercase tracking-wider">Correo Electrónico *</label>
+              <input type="email" id="c-email" required class="w-full p-3 border border-sand-300 bg-white rounded-xl text-sm outline-none focus:border-biophilic-500 transition-colors">
+            </div>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="space-y-1">
+              <label class="block text-[10px] font-bold text-slateCustom-500 uppercase tracking-wider">Ciudad *</label>
+              <input type="text" id="c-ciudad" value="Bogotá" required class="w-full p-3 border border-sand-300 bg-white rounded-xl text-sm outline-none focus:border-biophilic-500 transition-colors">
+            </div>
+            <div class="space-y-1">
+              <label class="block text-[10px] font-bold text-slateCustom-500 uppercase tracking-wider">Metros Aproximados (m²)</label>
+              <input type="number" id="c-m2" placeholder="Ej: 60" class="w-full p-3 border border-sand-300 bg-white rounded-xl text-sm outline-none focus:border-biophilic-500 transition-colors">
+            </div>
+          </div>
+          <div class="space-y-1">
+            <label class="block text-[10px] font-bold text-slateCustom-500 uppercase tracking-wider">Mensaje o especificaciones del espacio</label>
+            <textarea id="c-mensaje" rows="3" placeholder="Cuéntanos brevemente qué espacio deseas transformar..." class="w-full p-3 border border-sand-300 bg-white rounded-xl text-sm outline-none focus:border-biophilic-500 transition-colors resize-none"></textarea>
+          </div>
+          <div class="space-y-1">
+            <label class="block text-[10px] font-bold text-slateCustom-500 uppercase tracking-wider">Adjuntar fotografías actuales o bosquejo del plano (Opcional)</label>
+            <div class="border-2 border-dashed border-sand-300 rounded-xl p-4 bg-white text-center cursor-pointer hover:border-biophilic-500 transition-colors relative">
+              <i class="fa-solid fa-cloud-arrow-up text-sand-400 text-lg mb-1 block"></i>
+              <span id="file-label" class="text-xs text-slateCustom-500 font-light">Arrastra tus archivos o haz clic para cargar</span>
+              <input type="file" id="c-file" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" accept="image/*,.pdf" onchange="updateFileLabel(this)">
+            </div>
+          </div>
+          <button type="submit" class="w-full bg-biophilic-600 hover:bg-biophilic-700 text-white py-3.5 rounded-xl font-medium transition-all shadow-md btn-shadow">
+            Enviar Formulario de Cotización Avanzada
+          </button>
+        </form>
+
+        <div id="mensaje-exito" class="hidden p-6 sm:p-8 text-center space-y-3 bg-biophilic-400/10 border border-biophilic-400/20 rounded-2xl">
+          <i class="fa-solid fa-heart-pulse text-2xl text-biophilic-600 animate-pulse"></i>
+          <h4 class="font-serif text-lg sm:text-xl text-slateCustom-900 font-bold">¡Gracias por dar el primer paso!</h4>
+          <p class="text-xs sm:text-sm text-slateCustom-700 font-light max-w-md mx-auto leading-relaxed">
+            Gracias por iniciar tu camino hacia una vida en equilibrio. En menos de 24 horas un arquitecto residencial de Mentis Atelier se pondrá en contacto contigo para validar y personalizar la matriz de diseño.
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <div id="custom-lightbox" class="fixed inset-0 bg-black/90 z-50 hidden flex flex-col items-center justify-center p-4 transition-opacity duration-300 opacity-0" onclick="closeLightbox()">
+    <button class="absolute top-6 right-6 text-white/80 hover:text-white text-3xl focus:outline-none" onclick="closeLightbox()">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+    <div class="max-w-4xl w-full flex flex-col items-center" onclick="event.stopPropagation()">
+      <img id="lightbox-img" src="" alt="Vista ampliada" class="max-h-[75vh] max-w-full rounded-xl object-contain shadow-2xl border border-white/10">
+      <p id="lightbox-caption" class="text-sand-100 text-center font-serif text-base sm:text-lg mt-4 px-4 font-light tracking-wide"></p>
+    </div>
+  </div>
+
+  <footer class="bg-slateCustom-900 text-sand-300 py-8 text-xs font-light border-t border-slateCustom-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
+      <p>© 2026 MENTIS ATELIER SAS. Todos los derechos reservados. Bogotá, Colombia.</p>
+      <p class="text-sand-400/80">Innovación Académica en Neuroarquitectura y Bienestar Emocional.</p>
+    </div>
+  </footer>
+
+  <a href="https://wa.me/573163592312?text=%C2%A1Hola%2C%20Mentis%20Atelier%21%20Me%20gustar%C3%ADa%20transformar%20mi%20espacio%20para%20mejorar%20mi%20bienestar.%20Quiero%20agendar%20una%20asesor%C3%ADa." target="_blank" class="fixed bottom-5 right-5 bg-[#25D366] text-white w-12 h-12 sm:w-14 sm:h-14 rounded-full shadow-lg flex items-center justify-center text-xl sm:text-2xl z-50 transition-all hover:scale-105 active:scale-95" title="Chatea con nosotros">
+    <i class="fa-brands fa-whatsapp"></i>
+  </a>
+
+  <div id="toast">
+    <div class="flex items-center gap-3 text-left">
+      <i class="fa-solid fa-circle-check text-biophilic-400 text-lg"></i>
+      <div>
+        <p class="text-sm font-bold text-white">¡Formulario Recibido!</p>
+        <p class="text-xs text-slate-300">Te contactaremos en menos de 24 horas.</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  function toggleMenu() {
+    const menu = document.getElementById('menu-movil');
+    menu.classList.toggle('hidden');
+  }
+  document.getElementById('btn-menu-movil').addEventListener('click', toggleMenu);
+
+  // Funciones globales del Lightbox interactivo
+  function openLightbox(src, caption) {
+    const lightbox = document.getElementById('custom-lightbox');
+    const img = document.getElementById('lightbox-img');
+    const cap = document.getElementById('lightbox-caption');
+    
+    img.src = src;
+    cap.textContent = caption;
+    lightbox.classList.remove('hidden');
+    setTimeout(() => {
+      lightbox.classList.remove('opacity-0');
+    }, 10);
+  }
+
+  function closeLightbox() {
+    const lightbox = document.getElementById('custom-lightbox');
+    lightbox.classList.add('opacity-0');
+    setTimeout(() => {
+      lightbox.classList.add('hidden');
+    }, 300);
+  }
+
+  const dataCasos = {
+    antes: {
+      badge: 'El Dolor Diario',
+      badgeClass: 'bg-red-50 text-red-600 border-red-200',
+      title: 'Agobio, falta de concentración y picos emocionales',
+      desc: 'Sara pasa el 80% de su día en un apartamento con iluminación deficiente y colores oscuros y monótonos. Su zona de teletrabajo es incómoda y desorganizada, lo que detona un constante desánimo, fatiga mental profunda y dificultad para concentrarse, haciéndola sentir vacía a pesar de sus terapias psicológicas tradicionales.',
+      list: `<li class="flex items-center gap-2"><i class="fa-solid fa-circle-xmark text-red-400 flex-shrink-0"></i> Iluminación deficiente y sombras marcadas que disparan el estrés.</li>
+             <li class="flex items-center gap-2"><i class="fa-solid fa-circle-xmark text-red-400 flex-shrink-0"></i> Colores apagados que profundizan el estado de tristeza y fatiga.</li>
+             <li class="flex items-center gap-2"><i class="fa-solid fa-circle-xmark text-red-400 flex-shrink-0"></i> Desorganización espacial que altera la sensación de control.</li>`,
+      img: 'https://images.unsplash.com/photo-1558211583-d26f610c1eb1?auto=format&fit=crop&w=800&q=80',
+      overlay: 'absolute inset-0 bg-black/30 mix-blend-multiply'
+    },
+    despues: {
+      badge: 'La Transformación',
+      badgeClass: 'bg-emerald-50 text-emerald-600 border-emerald-200',
+      title: 'Espacios en armonía diseñados para el equilibrio emocional',
+      desc: 'Tras la intervención de Mentis Atelier, el apartamento de Sara se convirtió en su propio santuario. Se optimizó la distribución espacial de la alcoba, se integraron luminarias con ritmos circadianos y biofilia activa. Ahora la preparación de alimentos, su descanso diario y su jornada contable fluyen con total comodidad, seguridad y plenitud emocional.',
+      list: `<li class="flex items-center gap-2"><i class="fa-solid fa-circle-check text-biophilic-500 flex-shrink-0"></i> Iluminación natural óptma que regula la producción de cortisol.</li>
+             <li class="flex items-center gap-2"><i class="fa-solid fa-circle-check text-biophilic-500 flex-shrink-0"></i> Paleta de colores biofílica y texturas que inducen a la calma cerebral.</li>
+             <li class="flex items-center gap-2"><i class="fa-solid fa-circle-check text-biophilic-500 flex-shrink-0"></i> Zonas delimitadas para un balance perfecto entre vida y trabajo remoto.</li>`,
+      img: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=800&q=80',
+      overlay: 'absolute inset-0 bg-biophilic-800/20 mix-blend-multiply'
+    }
+  };
+
+  function setCaseState(state) {
+    const btnAntes = document.getElementById('tab-antes');
+    const btnDespues = document.getElementById('tab-despues');
+    
+    if (state === 'antes') {
+      btnAntes.className = "px-4 sm:px-6 py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 bg-white text-slateCustom-900 shadow-sm";
+      btnDespues.className = "px-4 sm:px-6 py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 text-slateCustom-600 hover:text-slateCustom-900";
+    } else {
+      btnDespues.className = "px-4 sm:px-6 py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 bg-white text-slateCustom-900 shadow-sm";
+      btnAntes.className = "px-4 sm:px-6 py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 text-slateCustom-600 hover:text-slateCustom-900";
+    }
+
+    const box = document.getElementById('case-content');
+    box.style.opacity = 0;
+    
+    setTimeout(() => {
+      document.getElementById('case-badge').className = `inline-block px-2.5 py-1 text-xs font-semibold rounded-md uppercase tracking-wider ${dataCasos[state].badgeClass}`;
+      document.getElementById('case-badge').textContent = dataCasos[state].badge;
+      document.getElementById('case-title').textContent = dataCasos[state].title;
+      document.getElementById('case-desc').textContent = dataCasos[state].desc;
+      document.getElementById('case-list').innerHTML = dataCasos[state].list;
+      document.getElementById('case-img').src = dataCasos[state].img;
+      document.getElementById('case-overlay').className = dataCasos[state].overlay;
+      box.style.opacity = 1;
+    }, 200);
+  }
+
+  function filterPortfolio(cat) {
+    const buttons = ['all', 'residencial', 'corporativo', 'salud'];
+    buttons.forEach(b => {
+      const el = document.getElementById(`f-${b}`);
+      if (b === cat) {
+        el.className = "px-4 py-2 rounded-lg bg-biophilic-600 text-white shadow-sm transition-all";
+      } else {
+        el.className = "px-4 py-2 rounded-lg bg-white border border-sand-300 text-slateCustom-600 hover:text-slateCustom-900 shadow-sm transition-all";
+      }
+    });
+
+    document.querySelectorAll('.p-card').forEach(card => {
+      if (cat === 'all' || card.getAttribute('data-cat') === cat) {
+        card.style.display = 'block';
+      } else {
+        card.style.display = 'none';
+      }
+    });
+  }
+
+  let stateDiag = { entorno: '', emocion: '', m2: 0 };
+
+  function nextDiagStep(currentStep, value) {
+    if (currentStep === 1) {
+      stateDiag.entorno = value;
+      document.getElementById('diag-step-1').classList.add('hidden');
+      document.getElementById('diag-step-2').classList.remove('hidden');
+      document.getElementById('progreso-diag').style.width = '66%';
+    } else if (currentStep === 2) {
+      stateDiag.emocion = value;
+      document.getElementById('diag-step-2').classList.add('hidden');
+      document.getElementById('diag-step-3').classList.remove('hidden');
+      document.getElementById('progreso-diag').style.width = '100%';
+    }
+  }
+
+  function backDiagStep(targetStep) {
+    if (targetStep === 1) {
+      document.getElementById('diag-step-2').classList.add('hidden');
+      document.getElementById('diag-step-1').classList.remove('hidden');
+      document.getElementById('progreso-diag').style.width = '33%';
+    } else if (targetStep === 2) {
+      document.getElementById('diag-step-3').classList.add('hidden');
+      document.getElementById('diag-step-2').classList.remove('hidden');
+      document.getElementById('progreso-diag').style.width = '66%';
+    }
+  }
+
+  function processDiagResult() {
+    const valM2 = document.getElementById('diag-m2').value;
+    if (!valM2 || valM2 <= 0) {
+      document.getElementById('diag-m2').style.borderColor = '#c06060';
+      return;
+    }
+    document.getElementById('diag-m2').style.borderColor = '';
+    stateDiag.m2 = parseInt(valM2);
+
+    const precioFinal = stateDiag.m2 * 35000;
+    const formatPrecio = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(precioFinal);
+
+    document.getElementById('r-entorno').textContent = stateDiag.entorno;
+    document.getElementById('r-emocion').textContent = stateDiag.emocion;
+    document.getElementById('r-precio').textContent = `${formatPrecio} COP`;
+
+    const textWA = `¡Hola, Mentis Atelier! Acabo de completar el Pre-Diagnóstico en la web. Deseo transformar un espacio de tipo ${stateDiag.entorno} de aproximadamente ${stateDiag.m2}m² que actualmente me transmite un foco de ${stateDiag.emocion}. Me gustaría agendar la asesoría técnica para la matriz de diseño.`;
+    document.getElementById('btn-wa-diag').href = `https://wa.me/573163592312?text=${encodeURIComponent(textWA)}`;
+
+    document.getElementById('diag-step-3').classList.add('hidden');
+    document.getElementById('diag-step-result').classList.remove('hidden');
+  }
+
+  function resetDiag() {
+    stateDiag = { entorno: '', emocion: '', m2: 0 };
+    document.getElementById('diag-m2').value = '';
+    document.getElementById('diag-step-result').classList.add('hidden');
+    document.getElementById('diag-step-1').classList.remove('hidden');
+    document.getElementById('progreso-diag').style.width = '33%';
+  }
+
+  function enviarFormContacto(e) {
+    e.preventDefault();
+    const nombre = document.getElementById('c-nombre').value;
+    const email = document.getElementById('c-email').value;
+
+    if (!nombre || !email) {
+      if (!nombre) document.getElementById('c-nombre').style.borderColor = '#c06060';
+      if (!email) document.getElementById('c-email').style.borderColor = '#c06060';
+      setTimeout(() => {
+        document.getElementById('c-nombre').style.borderColor = '';
+        document.getElementById('c-email').style.borderColor = '';
+      }, 1500);
+      return;
+    }
+
+    document.getElementById('form-contacto').classList.add('hidden');
+    document.getElementById('mensaje-exito').classList.remove('hidden');
+    showToast();
+  }
+
+  function showToast() {
+    document.getElementById('toast').classList.add('show');
+    setTimeout(hideToast, 5000);
+  }
+  function hideToast() {
+    document.getElementById('toast').classList.remove('show');
+  }
+
+  function updateFileLabel(input) {
+    const count = input.files.length;
+    document.getElementById('file-label').textContent =
+      count > 0 ? `${count} archivo${count > 1 ? 's' : ''} seleccionado${count > 1 ? 's' : ''}` : 'Arrastra tus archivos o haz clic para cargar';
+  }
+
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      const target = document.querySelector(a.getAttribute('href'));
+      if (target) {
+        e.preventDefault();
+        const offset = 72;
+        const targetPosition = target.getBoundingClientRect().top + window.pageYOffset - offset;
+        window.scrollTo({ top: targetPosition, behavior: 'smooth' });
+      }
+    });
+  });
+  </script>
+</body>
+</html>
